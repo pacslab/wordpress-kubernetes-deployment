@@ -53,10 +53,40 @@ wordpress-mysql   ClusterIP      None           <none>           3306/TCP       
 wordpress-nginx   LoadBalancer   X.X.X.X        X.X.X.X          80:32349/TCP     14d
 ```
 
-The external IP in the `EXTERNAL-IP` column of the row `wordpress-nginx` is the IP you can use to access your wordpress setup.
+The external IP in the `EXTERNAL-IP` column of the row `wordpress-nginx` is the IP you can use to access your wordpress setup. Open this IP address and finish the wordpress setup.
 
 # Deploying the Locust Load Tester
 
-In case you want to use the DDSL Locust Load Tester within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
+In case you want to use the [DDSL Locust Load Tester](https://hub.docker.com/r/nimamahmoudi/control-autoscaling-load-tester) within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
+
+- Create a copy of the template yaml file:
+
+```sh
+cp ./lt-yaml/lt-template.yaml ./lt-yaml/lt.yaml
+```
+
+- In `lt-yaml/lt.yaml` file, update the external ip to access your wordpress application on `line 41` (`--host=http://EXTERNAL_IP/`).
+
+- Deploy the load tester to your kubernetes cluster:
+
+```sh
+kubectl apply -f ./lt-yaml/lt.yaml
+```
+
+- Wait for the deployment to become available. Get the external IP for the locust server using `kubectl get svc` and open `EXTERNAL_LOCUST_IP:8089` in your browser.
+
+- Load test your setup with different number of users.
+
+- In case you want to reset the locust deployment:
+
+```sh
+kubectl scale deploy/wordpress-lt --replicas=0
+
+# Wait for the pods to be terminated
+kubectl get deploy/wordpress-lt
+
+# Create the pod again
+kubectl scale deploy/wordpress-lt --replicas=1
+```
 
 

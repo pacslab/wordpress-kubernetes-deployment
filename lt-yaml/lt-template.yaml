@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress-lt
+  labels:
+    app: wordpress
+spec:
+  ports:
+    - port: 8089
+      nodePort: 32350
+  selector:
+    app: wordpress
+    tier: loadtester
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: wordpress-lt
+  labels:
+    app: wordpress
+spec:
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: loadtester
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: loadtester
+    spec:
+      containers:
+      - image: nimamahmoudi/control-autoscaling-load-tester
+        name: wordpress-lt
+        args:
+          - "--host=http://EXTERNAL_IP/"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 8089
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8089
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 5
+        env:
+        - name: LOCUST_MODE
+          value: standalone
+        ports:
+        - containerPort: 8089
+          name: wordpress-lt
