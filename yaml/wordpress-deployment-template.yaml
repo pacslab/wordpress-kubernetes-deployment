@@ -1,0 +1,225 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: wp-config
+data:
+  wp-config.php: |
+    <?php
+    /**
+    * The base configuration for WordPress
+    *
+    * The wp-config.php creation script uses this file during the
+    * installation. You don't have to use the web site, you can
+    * copy this file to "wp-config.php" and fill in the values.
+    *
+    * This file contains the following configurations:
+    *
+    * * MySQL settings
+    * * Secret keys
+    * * Database table prefix
+    * * ABSPATH
+    *
+    * @link https://codex.wordpress.org/Editing_wp-config.php
+    *
+    * @package WordPress
+    */
+
+    // ** MySQL settings - You can get this info from your web host ** //
+    /** The name of the database for WordPress */
+    define( 'DB_NAME', 'wordpress');
+
+    /** MySQL database username */
+    define( 'DB_USER', 'root');
+
+    /** MySQL database password */
+    define( 'DB_PASSWORD', 'mysqlpass');
+
+    /** MySQL hostname */
+    define( 'DB_HOST', 'wordpress-mysql');
+
+    /** Database Charset to use in creating database tables. */
+    define( 'DB_CHARSET', 'utf8');
+
+    /** The Database Collate type. Don't change this if in doubt. */
+    define( 'DB_COLLATE', '');
+
+    /**#@+
+    * Authentication Unique Keys and Salts.
+    *
+    * Change these to different unique phrases!
+    * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+    * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+    *
+    * @since 2.6.0
+    */
+
+    /** GENERATE NEW VALUES FROM https://api.wordpress.org/secret-key/1.1/salt/! */
+    define('AUTH_KEY',         'DHk]s6LE{|NHf+{hFH;kl[6[J@+l!$[J1S~:n!Bgp..z9D)(v.6hsRS2Khd3)k#+');
+    define('SECURE_AUTH_KEY',  '0N-|)-iKN/x(E}GYr^ET:{K*SzN,SfUc!!<RH|n)W8J+{@^o./& |Cf^WZuRBO0:');
+    define('LOGGED_IN_KEY',    '.4c#/wKlIO$dggj<(rW3(.!mJ%%(cIKg>n2$W}^ue_u$<^nbRaL.dcg5&,j^MYGz');
+    define('NONCE_KEY',        '|&bSa0)Ph+=Q)Rojq6du8>Lf&BUsDd*eQ6AA&Zv$7V]f<?{-`-WyIq)`BPDy[|V0');
+    define('AUTH_SALT',        'MWCcn`j+gzW0PD$Vsy-Um@J8Q2O.OEK+RWqJ>&|Tb_<S2WGG$]ARc|AOw,[Rs-5l');
+    define('SECURE_AUTH_SALT', '/>_e1M>AmDoXF%KL{Su@vqGVQaL@qaz@-YV EVI8^E,jHL3<Da4:!D3o+;nJ(f7g');
+    define('LOGGED_IN_SALT',   'YIe*oXas)LzCgxfRdR97XDCGv(l]X^*]7`(:Vu:ymR5Z]eU7iJNr}n0kJgpH]&~B');
+    define('NONCE_SALT',       'F8B^ty1O](ius$<n455#W$?9wan_9DXvG1$4A%:QY<+]TQpZQPh[} wHYU?glr4O');
+
+    /**#@-*/
+
+    /**
+    * WordPress Database Table prefix.
+    *
+    * You can have multiple installations in one database if you give each
+    * a unique prefix. Only numbers, letters, and underscores please!
+    */
+    $table_prefix = 'wp_';
+
+    /**
+    * For developers: WordPress debugging mode.
+    *
+    * Change this to true to enable the display of notices during development.
+    * It is strongly recommended that plugin and theme developers use WP_DEBUG
+    * in their development environments.
+    *
+    * For information on other constants that can be used for debugging,
+    * visit the Codex.
+    *
+    * @link https://codex.wordpress.org/Debugging_in_WordPress
+    */
+    define( 'WP_DEBUG', false );
+
+    // If we're behind a proxy server and using HTTPS, we need to alert Wordpress of that fact
+    // see also http://codex.wordpress.org/Administration_Over_SSL#Using_a_Reverse_Proxy
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+            $_SERVER['HTTPS'] = 'on';
+    }
+
+    /* That's all, stop editing! Happy publishing. */
+
+    /** Absolute path to the WordPress directory. */
+    if ( ! defined( 'ABSPATH' ) ) {
+            define( 'ABSPATH', dirname( __FILE__ ) . '/' );
+    }
+
+    /** Sets up WordPress vars and included files. */
+    require_once( ABSPATH . 'wp-settings.php' );
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  ports:
+    # - port: 80
+    - port: 9000
+  selector:
+    app: wordpress
+    tier: frontend
+  # type: NodePort
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: fileserver
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+  - ReadWriteMany
+  # THIS NEEDS TO BE SET ACCORDING TO YOUR NFS SERVER!
+  nfs:
+    path: /var/nfs/general
+    server: X.X.X.X
+
+
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wp-pv-claim
+  labels:
+    app: wordpress
+spec:
+  # storageClassName: "nfs"
+  storageClassName: ""
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: wordpress
+  labels:
+    app: wordpress
+spec:
+  # replicas: 40
+  selector:
+    matchLabels:
+      app: wordpress
+      tier: frontend
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: wordpress
+        tier: frontend
+    spec:
+      containers:
+      # YOU CAN UPDATE THIS BASED ON YOUR PRIVATE DOCKER REGISTRY
+      - image: wordpress:php7.3-fpm-alpine
+        name: wordpress
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "150m"
+        readinessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 9000
+          initialDelaySeconds: 120
+          periodSeconds: 10
+          timeoutSeconds: 5
+        # # If any of these env variables exist, it is going to try and create wp-config.php
+        # env:
+        # - name: WORDPRESS_DB_HOST
+        #   value: wordpress-mysql
+        # - name: WORDPRESS_DB_PASSWORD
+        #   valueFrom:
+        #     secretKeyRef:
+        #       name: mysql-pass
+        #       key: password
+        ports:
+        - containerPort: 9000
+          name: wordpress
+        volumeMounts:
+        - name: wordpress-persistent-storage
+          mountPath: /var/www/html
+        - name: wordpress-config-volume
+          mountPath: /var/www/html/wp-config.php
+          subPath: wp-config.php
+      volumes:
+      - name: wordpress-persistent-storage
+        persistentVolumeClaim:
+          claimName: wp-pv-claim
+      # Add the ConfigMap we declared above as a volume for the pod
+      - name: wordpress-config-volume
+        configMap:
+          name: wp-config
