@@ -19,10 +19,9 @@ This three-tier wordpress application consists of `MySql 5.6` as the database, `
 
 - Don't forget to allow NFS server access to your cluster either by setting your cluster's IP range in `/etc/exports` or by setting the client IP to `*` to allow any host to connect and limit the access to the NFS server via your firewall.
 
-<aside class="notice">
+```
 You need to open ports 111 and 2049 for both TCP and UDP for NFS to function properly.
-</aside>
-
+```
 
 - Note your NFS server IP address since you will have to input this into your yaml files. We will call this value `NFS_SERVER_IP` from now on.
 
@@ -34,7 +33,7 @@ cp ./yaml/wordpress-deployment-template.yaml ./yaml/wordpress-deployment.yaml
 
 - For security reasons, update `lines 57-64` with new values from [this address](https://api.wordpress.org/secret-key/1.1/salt/).
 
-- Upload `line 137` with the IP address of your NFS server.
+- Upload `line 137` with the IP address of your NFS server (`NFS_SERVER_IP`).
 
 - In case you want to use your private docker registry for faster pulls from your cluster, first upload the Wordpress FPM docker image to your private registry using `docker pull wordpress:php7.3-fpm-alpine`, then `docker tag wordpress:php7.3-fpm-alpine -t YOUR_PRIVATE_DOCKER_REGISTRY_ADDRESS/wordpress:php7.3-fpm-alpine` and then `docker push YOUR_PRIVATE_DOCKER_REGISTRY_ADDRESS/wordpress:php7.3-fpm-alpine`. After doing this step, update `line 179` of `wordpress-deployment.yaml` with `YOUR_PRIVATE_DOCKER_REGISTRY_ADDRESS/wordpress:php7.3-fpm-alpine` as the docker image address.
 
@@ -54,4 +53,10 @@ wordpress-mysql   ClusterIP      None           <none>           3306/TCP       
 wordpress-nginx   LoadBalancer   X.X.X.X        X.X.X.X          80:32349/TCP     14d
 ```
 
-The external IP in the `EXTERNAL-IP` column of `wordpress-nginx` is the IP you can use to access your wordpress setup.
+The external IP in the `EXTERNAL-IP` column of the row `wordpress-nginx` is the IP you can use to access your wordpress setup.
+
+# Deploying the Locust Load Tester
+
+In case you want to use the DDSL Locust Load Tester within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
+
+
