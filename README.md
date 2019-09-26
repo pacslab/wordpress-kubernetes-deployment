@@ -55,7 +55,7 @@ wordpress-nginx   LoadBalancer   X.X.X.X        X.X.X.X          80:32349/TCP   
 
 The external IP in the `EXTERNAL-IP` column of the row `wordpress-nginx` is the IP you can use to access your wordpress setup. Open this IP address and finish the wordpress setup.
 
-# Deploying the Locust Load Tester
+## Deploying the Locust Load Tester
 
 In case you want to use the [DDSL Locust Load Tester](https://hub.docker.com/r/nimamahmoudi/control-autoscaling-load-tester) within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
 
@@ -88,5 +88,10 @@ kubectl get deploy/wordpress-lt
 # Create the pod again
 kubectl scale deploy/wordpress-lt --replicas=1
 ```
+- To fix the redirect issue
+
+Edit your current theme's functions.php and add following line after the opening PHP tag to disable canonical redirection.
+
+`remove_filter('template_redirect','redirect_canonical');` save and exit.
 
 
