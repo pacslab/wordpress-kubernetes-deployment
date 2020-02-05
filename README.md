@@ -1,4 +1,4 @@
-# DDSL Wordpress Kubernetes Deployment
+# PACS Wordpress Kubernetes Deployment
 
 This repository provides the details of the kubernetes deployment of a three-tier wordpress application that can be used for benchmarking several auto-scaling algorithms.
 This repository provides you with the `yaml` files needed to deploy the structure and get the kubernetes deployment up and running.
