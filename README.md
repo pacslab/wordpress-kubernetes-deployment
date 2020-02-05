@@ -57,7 +57,7 @@ The external IP in the `EXTERNAL-IP` column of the row `wordpress-nginx` is the 
 
 ## Deploying the Locust Load Tester
 
-In case you want to use the [DDSL Locust Load Tester](https://hub.docker.com/r/nimamahmoudi/control-autoscaling-load-tester) within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
+In case you want to use the [pacs Locust Load Tester](https://hub.docker.com/r/nimamahmoudi/control-autoscaling-load-tester) within the kubernetes cluster to test your autoscaling algorithm, you could do so by deploying our locust load tester to your cluster. This alleviates the effect of network latency and jitter in your results. Here are the steps to set this up:
 
 - Create a copy of the template yaml file:
 
